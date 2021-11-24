@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "udp.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -11,7 +12,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->Plot->axisRect()->setupFullAxesBox(true);
     ui->Plot->xAxis->setLabel("x");
     ui->Plot->yAxis->setLabel("y");
-    connect(this, &MainWindow::signalFromFile, this, &MainWindow::slotGraphUpdate);
+
+
+    ui->Plot_2->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom); // this will also allow rescaling the color scale by dragging/zooming
+    ui->Plot_2->axisRect()->setupFullAxesBox(true);
+    ui->Plot_2->xAxis->setLabel("x");
+    ui->Plot_2->yAxis->setLabel("y");
+
 }
 
 MainWindow::~MainWindow()
@@ -28,7 +35,7 @@ void MainWindow::on_openFile_btn_clicked()
     QDataStream stream(&file);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    for (i = 0; i < count_data; ++i) // вычислить размер файла
+    for (i = 0; i < count_data; ++i)
     {
         double real, imag;
         stream >> real >> imag;
@@ -36,11 +43,76 @@ void MainWindow::on_openFile_btn_clicked()
         buffer.append(z);
         //qDebug() << "buffer = " << buffer[i].real() << " + " << buffer[i].imag() << "i";
     }
+    graphUpdate_raw(graphID);
+    UDP client;
+    client.SendDataUDP(buffer);
+    buffer_receive_complex = client.readyRead();
+    FILE* fp_2;
+    fopen_s(&fp_2, "D:\\Programming\\C++\\Qt\\CSA\\data.txt", "w");
+    for (int i = 0; i < 1024; ++i)
+    {
+        for (int j = 0; j < 320; ++j)
+        {
+            int ii = 1024 * j + i;
+            fprintf(fp_2, "i = %d  j = %d  ", i, j);
+            fprintf(fp_2, "% .20f + %.20fi\n", buffer_receive_complex[ii].real(), buffer_receive_complex[ii].imag());
 
-    emit signalFromFile(graphID);
+            //fprintf(fp_2, "i = %d j = %d %.16f \n", i, j, R0_RCMC[j]);
+        }
+    }
+    fclose(fp_2);
+    graphUpdate_image(buffer_receive_complex);
 }
 
-void MainWindow::slotGraphUpdate(int graphID)
+void MainWindow::graphUpdate_image(QVector<std::complex<double>> buffer_receive_complex)
+{
+    QCPColorMap *colorMap = new QCPColorMap(ui->Plot_2->xAxis, ui->Plot_2->yAxis);
+    int nx = 1024;
+    int ny = 320;
+    colorMap->data()->setSize(nx, ny); // we want the color map to have nx * ny data points
+    colorMap->data()->setRange(QCPRange(0, 320), QCPRange(0, 1024)); // and span the coordinate range -4..4 in both key (x) and value (y) dimensions
+    // now we assign some data, by accessing the QCPColorMapData instance of the color map:
+    double x, y;
+    for (int xIndex=0; xIndex<nx; ++xIndex)
+    {
+      for (int yIndex=0; yIndex<ny; ++yIndex)
+      {
+        colorMap->data()->cellToCoord(xIndex, yIndex, &x, &y);
+
+        z = abs(buffer_receive_complex[yIndex * 1024 + xIndex]);
+        graph_label = "Image";
+        colorMap->data()->setCell(xIndex, yIndex, z);
+      }
+    }
+    QCPColorScale *colorScale = new QCPColorScale(ui->Plot_2);
+    ui->Plot_2->plotLayout()->addElement(0, 1, colorScale); // add it to the right of the main axis rect
+    colorScale->setType(QCPAxis::atRight); // scale shall be vertical bar with tick/axis labels right (actually atRight is already the default)
+    colorMap->setColorScale(colorScale); // associate the color map with the color scale
+    // set the color gradient of the color map to one of the presets:
+    colorMap->setGradient(QCPColorGradient::gpCold);
+    // we could have also created a QCPColorGradient instance and added own colors to
+    // the gradient, see the documentation of QCPColorGradient for what's possible.
+
+    // rescale the data dimension (color) such that all data points lie in the span visualized by the color gradient:
+    colorMap->rescaleDataRange();
+
+    // make sure the axis rect and color scale synchronize their bottom and top margins (so they line up):
+    QCPMarginGroup *marginGroup = new QCPMarginGroup(ui->Plot_2);
+    ui->Plot_2->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
+    colorScale->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
+
+    QCPItemText *textLabel = new QCPItemText(ui->Plot_2);
+    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    textLabel->position->setCoords(0.5, 0); // place position at center/top of axis rect
+    textLabel->setText(graph_label);
+    textLabel->setFont(QFont(font().family(), 16)); // make font a bit larger
+    // rescale the key (x) and value (y) axes so the whole color map is visible:
+    ui->Plot_2->rescaleAxes();
+    ui->Plot_2->replot();
+}
+
+void MainWindow::graphUpdate_raw(int graphID)
 {
     QCPColorMap *colorMap = new QCPColorMap(ui->Plot->xAxis, ui->Plot->yAxis);
     int nx = 1024;
@@ -112,7 +184,7 @@ void MainWindow::on_nextGraph_btn_clicked()
     {
         graphID = 0;
     }
-    emit signalFromFile(graphID);
+    graphUpdate_raw(graphID);
 }
 
 void MainWindow::on_prevGraph_btn_clicked()
@@ -122,6 +194,6 @@ void MainWindow::on_prevGraph_btn_clicked()
     {
         graphID = 3;
     }
-    emit signalFromFile(graphID);
+    graphUpdate_raw(graphID);
 }
 

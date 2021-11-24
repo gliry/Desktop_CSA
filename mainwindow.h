@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -19,19 +20,19 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    QList<std::complex<double>> buffer;
+    QVector<std::complex<double>> buffer;
+    QVector<std::complex<double>> buffer_receive_complex;
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 signals:
-    void signalFromFile(int graphID);
+    void signalGraphUpdate(int graphID);
 
 private slots:
     void on_openFile_btn_clicked();
-    void slotGraphUpdate(int graphID);
-
+    void graphUpdate_raw(int graphID);
+    void graphUpdate_image(QVector<std::complex<double>> buffer_receive_complex);
     void on_nextGraph_btn_clicked();
-
     void on_prevGraph_btn_clicked();
 
 private:

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>742</width>
+    <height>486</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="openFile_btn">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>310</y>
-      <width>80</width>
-      <height>21</height>
+      <x>630</x>
+      <y>400</y>
+      <width>81</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -32,7 +32,7 @@
      <rect>
       <x>50</x>
       <y>20</y>
-      <width>341</width>
+      <width>311</width>
       <height>261</height>
      </rect>
     </property>
@@ -40,10 +40,10 @@
    <widget class="QPushButton" name="nextGraph_btn">
     <property name="geometry">
      <rect>
-      <x>310</x>
+      <x>270</x>
       <y>310</y>
-      <width>80</width>
-      <height>21</height>
+      <width>91</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -53,14 +53,24 @@
    <widget class="QPushButton" name="prevGraph_btn">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>50</x>
       <y>310</y>
-      <width>80</width>
-      <height>21</height>
+      <width>91</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>&lt;</string>
+    </property>
+   </widget>
+   <widget class="QCustomPlot" name="Plot_2" native="true">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>20</y>
+      <width>291</width>
+      <height>261</height>
+     </rect>
     </property>
    </widget>
   </widget>
@@ -69,7 +79,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>742</width>
      <height>20</height>
     </rect>
    </property>
