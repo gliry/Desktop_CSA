@@ -30,6 +30,7 @@ void MainWindow::on_openFile_btn_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Choose file");
     QFile file(filename);
+    timer.start();
     count_data = file.size() / (sizeof(double) * 2);
     file.open(QIODevice::ReadOnly);
     QDataStream stream(&file);
@@ -47,13 +48,14 @@ void MainWindow::on_openFile_btn_clicked()
     UDP client;
     client.SendDataUDP(buffer);
     buffer_receive_complex = client.readyRead();
+    //qDebug() << "Прошло: " << (double)timer.elapsed() / 1000;
     FILE* fp_2;
     fopen_s(&fp_2, "D:\\Programming\\C++\\Qt\\CSA\\data.txt", "w");
-    for (int i = 0; i < 1024; ++i)
+    for (int i = 0; i < 2048; ++i)
     {
         for (int j = 0; j < 320; ++j)
         {
-            int ii = 1024 * j + i;
+            int ii = 2048 * j + i;
             fprintf(fp_2, "i = %d  j = %d  ", i, j);
             fprintf(fp_2, "% .20f + %.20fi\n", buffer_receive_complex[ii].real(), buffer_receive_complex[ii].imag());
 
@@ -67,10 +69,10 @@ void MainWindow::on_openFile_btn_clicked()
 void MainWindow::graphUpdate_image(QVector<std::complex<double>> buffer_receive_complex)
 {
     QCPColorMap *colorMap = new QCPColorMap(ui->Plot_2->xAxis, ui->Plot_2->yAxis);
-    int nx = 1024;
+    int nx = 2048;
     int ny = 320;
     colorMap->data()->setSize(nx, ny); // we want the color map to have nx * ny data points
-    colorMap->data()->setRange(QCPRange(0, 320), QCPRange(0, 1024)); // and span the coordinate range -4..4 in both key (x) and value (y) dimensions
+    colorMap->data()->setRange(QCPRange(0, 2048), QCPRange(0, 320)); // and span the coordinate range -4..4 in both key (x) and value (y) dimensions
     // now we assign some data, by accessing the QCPColorMapData instance of the color map:
     double x, y;
     for (int xIndex=0; xIndex<nx; ++xIndex)
@@ -79,7 +81,7 @@ void MainWindow::graphUpdate_image(QVector<std::complex<double>> buffer_receive_
       {
         colorMap->data()->cellToCoord(xIndex, yIndex, &x, &y);
 
-        z = abs(buffer_receive_complex[yIndex * 1024 + xIndex]);
+        z = abs(buffer_receive_complex[yIndex * 2048 + xIndex]);
         graph_label = "Image";
         colorMap->data()->setCell(xIndex, yIndex, z);
       }
@@ -115,10 +117,10 @@ void MainWindow::graphUpdate_image(QVector<std::complex<double>> buffer_receive_
 void MainWindow::graphUpdate_raw(int graphID)
 {
     QCPColorMap *colorMap = new QCPColorMap(ui->Plot->xAxis, ui->Plot->yAxis);
-    int nx = 1024;
+    int nx = 2048;
     int ny = 320;
     colorMap->data()->setSize(nx, ny); // we want the color map to have nx * ny data points
-    colorMap->data()->setRange(QCPRange(0, 320), QCPRange(0, 1024)); // and span the coordinate range -4..4 in both key (x) and value (y) dimensions
+    colorMap->data()->setRange(QCPRange(0, 2048), QCPRange(0, 320)); // and span the coordinate range -4..4 in both key (x) and value (y) dimensions
     // now we assign some data, by accessing the QCPColorMapData instance of the color map:
     double x, y;
     for (int xIndex=0; xIndex<nx; ++xIndex)
@@ -128,22 +130,22 @@ void MainWindow::graphUpdate_raw(int graphID)
         colorMap->data()->cellToCoord(xIndex, yIndex, &x, &y);
         if (graphID == 0)
         {
-        z = buffer[yIndex * 1024 + xIndex].real();
+        z = buffer[yIndex * 2048 + xIndex].real();
         graph_label = "Real part";
         }
         else if (graphID == 1)
         {
-        z = buffer[yIndex * 1024 + xIndex].imag();
+        z = buffer[yIndex * 2048 + xIndex].imag();
         graph_label = "Im part";
         }
         else if (graphID == 2)
         {
-        z = abs(buffer[yIndex * 1024 + xIndex]);
+        z = abs(buffer[yIndex * 2048 + xIndex]);
         graph_label = "Amplitude";
         }
         else
         {
-        z = arg(buffer[yIndex * 1024 + xIndex]);
+        z = arg(buffer[yIndex * 2048 + xIndex]);
         graph_label = "Phase";
         }
         colorMap->data()->setCell(xIndex, yIndex, z);

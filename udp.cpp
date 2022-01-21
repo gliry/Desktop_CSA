@@ -11,7 +11,7 @@ UDP::UDP(QObject *parent) : QObject(parent)
     // bool QAbstractSocket::bind(const QHostAddress & address,
     //     quint16 port = 0, BindMode mode = DefaultForPlatform)
     socket->bind(hostAddress, 4999);
-    socket->setSocketOption(QAbstractSocket :: ReceiveBufferSizeSocketOption, 1024 * 320 * 2 * 16 * 2);
+    socket->setSocketOption(QAbstractSocket :: ReceiveBufferSizeSocketOption, 2048 * 320 * 2 * 16 * 2);
     connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 
@@ -21,7 +21,7 @@ void UDP::SendDataUDP(QVector<std::complex<double>> buffer)
     hostAddress.setAddress("169.254.57.9");
     QByteArray Data;
     int sended = 0;
-    for (int i = 0; i < 10240; ++i)
+    for (int i = 0; i < 20480; ++i)
     {
         for (int j = 0; j < 32; ++j)  // 32 * 8 byte * 2(real + imag) = 512 bytes
         {
@@ -72,7 +72,7 @@ QVector<std::complex<double>> UDP::readyRead()
     QDataStream stream(buffer);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    for (int i = 0; i < 1024; ++i) // вычислить размер файла
+    for (int i = 0; i < 2048; ++i) // вычислить размер файла
     {
         for (int j = 0; j < 320; ++j)
         {

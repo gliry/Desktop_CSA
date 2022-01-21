@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <stdio.h>
+#include <QElapsedTimer>
 
 
 
@@ -43,5 +44,6 @@ private:
     double z;
     int graphID = 0;
     QString graph_label;
+    QElapsedTimer timer;
 };
 #endif // MAINWINDOW_H
